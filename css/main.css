@@ -1,0 +1,181 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #0f0f1a;
+  --color-surface: #1a1a2e;
+  --color-primary: #e94560;
+  --color-accent: #0f3460;
+  --color-text: #eee;
+  --color-text-muted: #aaa;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Header ===== */
+#app-header {
+  background: var(--color-surface);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.logo {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+#game-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-text);
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: var(--color-accent);
+}
+
+.nav-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ===== Main ===== */
+#app-root {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* ===== Footer ===== */
+#app-footer {
+  text-align: center;
+  padding: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* ===== Home Page ===== */
+.home-container {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+.home-container h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.home-container p {
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.game-card {
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid transparent;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(233, 69, 96, 0.2);
+  border-color: var(--color-primary);
+}
+
+.game-card h3 {
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+}
+
+.game-card p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ===== Game Container ===== */
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.game-wrapper h2 {
+  margin-bottom: 1rem;
+  color: var(--color-primary);
+}
+
+.game-controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.game-controls button {
+  background: var(--color-accent);
+  border: none;
+  color: var(--color-text);
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.game-controls button:hover {
+  background: var(--color-primary);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 4px;
+}
