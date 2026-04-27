@@ -70,7 +70,7 @@ GameRegistry.register({
 
 ```
 js/games/
-  ├── tetris.js
+  ├── sirtet.js
   └── my-game.js      ← 새로 추가
 ```
 
@@ -167,7 +167,7 @@ class SnakeGame {
 ```html
 <script src="js/registry.js"></script>
 <script src="js/router.js"></script>
-<script src="js/games/tetris.js"></script>
+<script src="js/games/sirtet.js"></script>
 <script src="js/games/my-game.js"></script>  <!-- ← 추가 -->
 <script src="js/app.js"></script>
 ```
@@ -430,7 +430,7 @@ update(timestamp) {
 
 ## 참고: 기존 게임 분석
 
-`js/games/tetris.js`를 참고하면:
+`js/games/sirtet.js`를 참고하면:
 
 - GameRegistry 등록 패턴
 - Canvas 기반 렌더링

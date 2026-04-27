@@ -1,5 +1,5 @@
 /**
- * Tetris — 테트리스 게임
+ * Sirtet — 블록이 아래서 위로 올라가는 퍼즐 게임
  *
  * GameRegistry.register() 로 등록되며,
  * init(container) 메서드가 호출됩니다.
@@ -22,7 +22,7 @@
     '#f00000', // Z - red
   ];
 
-  // 테트리스 조각 정의 (각 회전 상태)
+  // Sirtet 조각 정의 (각 회전 상태)
   const SHAPES = [
     null,
     [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], // I
@@ -36,16 +36,16 @@
 
   // ===== GameRegistry 등록 =====
   GameRegistry.register({
-    id: 'tetris',
-    name: '테트리스',
-    description: '클래식 블록 쌓기 퍼즐 게임',
+    id: 'sirtet',
+    name: 'Sirtet',
+    description: '블록이 아래서 위로 올라가는 퍼즐 게임',
     init(container) {
-      return new TetrisGame(container);
+      return new SirtetGame(container);
     },
   });
 
   // ===== 게임 클래스 =====
-  class TetrisGame {
+  class SirtetGame {
     constructor(container) {
       this.container = container;
       this.canvas = document.createElement('canvas');
@@ -113,7 +113,7 @@
       this.ctx.fillStyle = '#e94560';
       this.ctx.font = 'bold 28px sans-serif';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('테트리스', this.canvas.width / 2, this.canvas.height / 2 - 40);
+      this.ctx.fillText('Sirtet', this.canvas.width / 2, this.canvas.height / 2 - 40);
 
       this.ctx.fillStyle = '#eee';
       this.ctx.font = '16px sans-serif';
@@ -121,8 +121,8 @@
 
       this.ctx.font = '12px sans-serif';
       this.ctx.fillStyle = '#888';
-      this.ctx.fillText('← → 이동  |  ↑ 회전', this.canvas.width / 2, this.canvas.height / 2 + 20);
-      this.ctx.fillText('↓ 부드럽게 내리기  |  Space: 강하게 내리기', this.canvas.width / 2, this.canvas.height / 2 + 40);
+      this.ctx.fillText('← → 이동  |  ↓ 회전', this.canvas.width / 2, this.canvas.height / 2 + 20);
+      this.ctx.fillText('↑ 부드럽게 올리기  |  Space: 강하게 올리기', this.canvas.width / 2, this.canvas.height / 2 + 40);
       this.ctx.fillText('P: 일시정지', this.canvas.width / 2, this.canvas.height / 2 + 60);
 
       // Clear next canvas
@@ -149,7 +149,7 @@
         shape,
         typeId: piece.typeId,
         x: Math.floor(COLS / 2) - Math.ceil(shape[0].length / 2),
-        y: 0,
+        y: ROWS - shape.length,
       };
       if (this.collides(this.current.x, this.current.y, this.current.shape)) {
         this.gameOver = true;
@@ -157,13 +157,13 @@
       }
     }
 
-    /** Compute ghost (drop preview) Y position */
+    /** Compute ghost (rise preview) Y position — blocks rise upward */
     getGhostY() {
       let ghostY = this.current.y;
       while (
-        !this.collides(this.current.x, ghostY + 1, this.current.shape)
+        !this.collides(this.current.x, ghostY - 1, this.current.shape)
       ) {
-        ghostY++;
+        ghostY--;
       }
       return ghostY;
     }
@@ -174,8 +174,8 @@
           if (!shape[r][c]) continue;
           const nx = px + c;
           const ny = py + r;
-          if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
-          if (ny >= 0 && this.board[ny][nx]) return true;
+          if (nx < 0 || nx >= COLS || ny < 0) return true;
+          if (ny < ROWS && this.board[ny][nx]) return true;
         }
       }
       return false;
@@ -218,10 +218,10 @@
 
     clearLines() {
       let cleared = 0;
-      for (let r = ROWS - 1; r >= 0; r--) {
+      for (let r = 0; r < ROWS; r++) {
         if (this.board[r].every((cell) => cell !== 0)) {
           this.board.splice(r, 1);
-          this.board.unshift(new Array(COLS).fill(0));
+          this.board.push(new Array(COLS).fill(0));
           cleared++;
           r++; // recheck this row
         }
@@ -235,9 +235,9 @@
       }
     }
 
-    drop() {
-      if (!this.collides(this.current.x, this.current.y + 1, this.current.shape)) {
-        this.current.y++;
+    rise() {
+      if (!this.collides(this.current.x, this.current.y - 1, this.current.shape)) {
+        this.current.y--;
       } else {
         this.merge();
         this.clearLines();
@@ -245,11 +245,11 @@
       }
     }
 
-    hardDrop() {
+    hardRise() {
       while (
-        !this.collides(this.current.x, this.current.y + 1, this.current.shape)
+        !this.collides(this.current.x, this.current.y - 1, this.current.shape)
       ) {
-        this.current.y++;
+        this.current.y--;
         this.score += 2;
       }
       this.merge();
@@ -307,16 +307,16 @@
               this.current.x++;
             break;
           case 'ArrowDown':
-            this.drop();
-            this.score += 1;
-            e.preventDefault();
-            break;
-          case 'ArrowUp':
             this.rotate();
             e.preventDefault();
             break;
+          case 'ArrowUp':
+            this.rise();
+            this.score += 1;
+            e.preventDefault();
+            break;
           case ' ':
-            this.hardDrop();
+            this.hardRise();
             e.preventDefault();
             break;
         }
@@ -428,7 +428,7 @@
       }
 
       if (!this.paused && timestamp - this.lastDrop > this.dropInterval) {
-        this.drop();
+        this.rise();
         this.lastDrop = timestamp;
       }
 
@@ -474,7 +474,7 @@
       this.hideGameOverUI();
 
       const overlay = document.createElement('div');
-      overlay.className = 'tetris-gameover-overlay';
+      overlay.className = 'sirtet-gameover-overlay';
       overlay.style.cssText = `
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.75); display: flex; flex-direction: column;
