@@ -11,8 +11,9 @@
 3. [단계별 가이드](#단계별-가이드)
 4. [게임 생명주기](#게임-생명주기)
 5. [GameInstance 인터페이스](#gameinstance-인터페이스)
-6. [모범 사례](#모범-사례)
-7. [디버깅 팁](#디버깅-팁)
+6. [오디오 (배경음 & 효과음)](#오디오-배경음--효과음)
+7. [모범 사례](#모범-사례)
+8. [디버깅 팁](#디버깅-팁)
 
 ---
 
@@ -343,6 +344,133 @@ class MyGame {
 
 ---
 
+## 오디오 (배경음 & 효과음)
+
+WebGame 플랫폼은 `js/audio.js`에 포함된 `GameAudio` 클래스를 통해 배경음(BGM)과 효과음(SFX)을 제공합니다. 외부 오디오 파일 없이 Web Audio API로 사운드를 합성합니다.
+
+### 아키텍처
+
+```
+js/audio.js  → GameAudio 클래스 (BGM + SFX 합성)
+    ↓
+js/games/sirtet.js  → GameAudio 인스턴스 사용
+```
+
+### GameAudio 사용법
+
+```javascript
+// 1. 인스턴스 생성
+const audio = new GameAudio();
+
+// 2. 초기화 (사용자 제스처 후 호출 — 브라우저 정책)
+audio.init();
+
+// 3. 효과음 재생
+audio.playSFX('move');      // 블록 이동
+audio.playSFX('rotate');    // 블록 회전
+audio.playSFX('drop');      // 하드 드롭
+audio.playSFX('clear');     // 라인 클리어
+audio.playSFX('gameover');  // 게임 종료
+audio.playSFX('start');     // 게임 시작
+
+// 4. 배경음 재생/정지
+audio.playBGM('sirtet');    // Sirtet BGM 재생
+audio.stopBGM();            // BGM 정지
+
+// 5. 볼륨 조절
+audio.setVolume(0.12, 0.35); // (bgmVol, sfxVol)
+
+// 6. 음소거 토글
+const enabled = audio.toggle();
+
+// 7. 리소스 정리
+audio.destroy();
+```
+
+### 지원 효과음 (SFX)
+
+| 이름 | 설명 | 사운드 특징 |
+|------|------|-------------|
+| `move` | 블록 이동 | 짧은 저음 스퀘어 파형 |
+| `rotate` | 블록 회전 | 상승하는 사인 파형 |
+| `drop` | 하드 드롭 | 하강하는 톤 + 임팩트 |
+| `clear` | 라인 클리어 | 상승하는 아르페지오 (C-E-G-C) |
+| `gameover` | 게임 종료 | 하강하는 멜로디 (G-F-E-C) |
+| `start` | 게임 시작 | 상승하는 아르페지오 (C-E-G-C) |
+
+### 지원 배경음 (BGM)
+
+| 프리셋 | 설명 |
+|--------|------|
+| `sirtet` | Tetris Theme(Everlydeen) 스타일 8비트 루프 멜로디, BPM 132 |
+
+### 게임에 오디오 통합하기
+
+```javascript
+class MyGame {
+  constructor(container) {
+    this.audio = new GameAudio();
+    // ...
+  }
+
+  startGame() {
+    this.audio.init();       // AudioContext 초기화 (사용자 입력 시)
+    this.audio.playSFX('start');
+    this.audio.playBGM('sirtet');
+  }
+
+  gameOver() {
+    this.audio.stopBGM();
+    this.audio.playSFX('gameover');
+  }
+
+  destroy() {
+    this.audio.destroy();    // AudioContext 닫기
+  }
+}
+```
+
+### 브라우저 오디오 정책
+
+모든 브라우저는 **사용자 제스처(클릭, 키 입력 등) 없이 AudioContext를 재생할 수 없습니다**. 따라서:
+
+1. `audio.init()`을 대기화면에서 사용자가 Enter/Space를 눌렀을 때 호출
+2. `init()` 내부에서 `AudioContext`를 생성하고 `resume()`
+
+```javascript
+// 대기화면에서 키 입력 시
+if (!this.gameStarted && (e.key === 'Enter' || e.key === ' ')) {
+  this.audio.init();  // ✅ 여기에서 초기화
+  this.gameStarted = true;
+  this.initGame();
+}
+```
+
+### 새로운 사운드 추가하기
+
+`GameAudio` 클래스에 새로운 SFX 메서드를 추가합니다:
+
+```javascript
+// js/audio.js 내
+_sfxMySound(t) {
+  const o = this.ctx.createOscillator();
+  const g = this.ctx.createGain();
+  o.type = 'square';
+  o.frequency.value = 440;
+  g.gain.setValueAtTime(0.2, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  o.connect(g).connect(this.sfxGain);
+  o.start(t); o.stop(t + 0.15);
+}
+
+// playSFX()의 switch 문에 추가
+case 'mysound':
+  this._sfxMySound(now);
+  break;
+```
+
+---
+
 ## 모범 사례
 
 ### 1. 전역 변수 금지
@@ -426,6 +554,12 @@ update(timestamp) {
 - Canvas 크기를 필요 이상으로 크게 하지 마세요
 - 불필요한 DOM 조작을 최소화하세요
 
+### 오디오 관련 문제
+
+- **소리가 나지 않음**: `audio.init()`이 사용자 제스처(키 입력 등) 후에 호출되었는지 확인
+- **BGM이 중복 재생**: `playBGM()` 호출 전에 `stopBGM()`을 호출했는지 확인
+- **게임 전환 후 잔향**: `destroy()`에서 `audio.destroy()`를 호출했는지 확인
+
 ---
 
 ## 참고: 기존 게임 분석
@@ -437,5 +571,6 @@ update(timestamp) {
 - 키보드 입력 처리
 - 게임 루프 (requestAnimationFrame)
 - destroy() 리소스 정리
+- **GameAudio를 활용한 배경음/효과음 통합**
 
 모든 패턴을 확인할 수 있습니다.

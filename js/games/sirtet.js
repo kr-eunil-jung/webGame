@@ -60,6 +60,9 @@
       this.paused = false;
       this.animationId = null;
 
+      // 오디오 초기화
+      this.audio = new GameAudio();
+
       this.bindKeys();
       this.showWaitingScreen();
     }
@@ -153,6 +156,8 @@
       };
       if (this.collides(this.current.x, this.current.y, this.current.shape)) {
         this.gameOver = true;
+        this.audio.stopBGM();
+        this.audio.playSFX('gameover');
         this.showGameOverUI();
       }
     }
@@ -223,7 +228,7 @@
           this.board.splice(r, 1);
           this.board.push(new Array(COLS).fill(0));
           cleared++;
-          r++; // recheck this row
+          r--; // recheck this row
         }
       }
       if (cleared > 0) {
@@ -232,6 +237,7 @@
         this.lines += cleared;
         // speed up slightly
         this.dropInterval = Math.max(100, 1000 - this.lines * 10);
+        this.audio.playSFX('clear');
       }
     }
 
@@ -262,6 +268,7 @@
         // 대기화면에서 Enter/Space 누르면 게임 시작
         if (!this.gameStarted && (e.key === 'Enter' || e.key === ' ')) {
           this.gameStarted = true;
+          this.audio.init();
           this.initGame();
           e.preventDefault();
           return;
@@ -293,8 +300,10 @@
                 this.current.y,
                 this.current.shape
               )
-            )
+            ) {
               this.current.x--;
+              this.audio.playSFX('move');
+            }
             break;
           case 'ArrowRight':
             if (
@@ -303,11 +312,14 @@
                 this.current.y,
                 this.current.shape
               )
-            )
+            ) {
               this.current.x++;
+              this.audio.playSFX('move');
+            }
             break;
           case 'ArrowDown':
             this.rotate();
+            this.audio.playSFX('rotate');
             e.preventDefault();
             break;
           case 'ArrowUp':
@@ -317,6 +329,7 @@
             break;
           case ' ':
             this.hardRise();
+            this.audio.playSFX('drop');
             e.preventDefault();
             break;
         }
@@ -449,6 +462,8 @@
       this.nextPiece = null;
       this.nextPiece = this.createRandomPiece();
       this.spawnPiece();
+      this.audio.playSFX('start');
+      this.audio.playBGM('sirtet');
       this.update();
     }
 
@@ -529,6 +544,7 @@
     destroy() {
       if (this.animationId) cancelAnimationFrame(this.animationId);
       if (this.keyHandler) window.removeEventListener('keydown', this.keyHandler);
+      this.audio.destroy();
       this.container.innerHTML = '';
     }
   }
