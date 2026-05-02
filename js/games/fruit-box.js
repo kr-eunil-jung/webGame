@@ -77,6 +77,8 @@
       this.dragStartCol = -1;
       this.dragStartRow = -1;
 
+      this.audio = new GameAudio();
+
       this.container.appendChild(this.canvas);
 
       this.scoreEl = document.createElement('div');
@@ -91,6 +93,9 @@
     }
 
     startGame() {
+      this.audio.init();
+      this.audio.playSFX('start');
+      this.audio.playBGM('fruitbox');
       this.state = STATE_PLAYING;
       this.score = 0;
       this.timeLeft = TIME_LIMIT;
@@ -277,6 +282,8 @@
       this.clearing = true;
       this.clearTimer = 10;
 
+      this.audio.playSFX('clear');
+
       for (const key of this.selected) {
         const [col, row] = key.split(',').map(Number);
         this.grid[row][col] = null;
@@ -291,6 +298,8 @@
     checkGameOver() {
       if (!this.hasAnyValidMove()) {
         this.state = STATE_GAMEOVER;
+        this.audio.stopBGM();
+        this.audio.playSFX('gameover');
       }
     }
 
@@ -531,6 +540,8 @@
         if (this.timeLeft <= 0) {
           this.timeLeft = 0;
           this.state = STATE_GAMEOVER;
+          this.audio.stopBGM();
+          this.audio.playSFX('gameover');
         }
       }
 
@@ -559,6 +570,7 @@
       if (this.touchStartHandler) this.canvas.removeEventListener('touchstart', this.touchStartHandler);
       if (this.touchMoveHandler) this.canvas.removeEventListener('touchmove', this.touchMoveHandler);
       if (this.touchEndHandler) this.canvas.removeEventListener('touchend', this.touchEndHandler);
+      this.audio.destroy();
       this.container.innerHTML = '';
     }
   }

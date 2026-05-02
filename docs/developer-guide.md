@@ -372,9 +372,14 @@ audio.playSFX('drop');      // 하드 드롭
 audio.playSFX('clear');     // 라인 클리어
 audio.playSFX('gameover');  // 게임 종료
 audio.playSFX('start');     // 게임 시작
+audio.playSFX('eat');       // 먹이 먹음
+audio.playSFX('select');    // 선택
+audio.playSFX('invalid');   // 무효
 
 // 4. 배경음 재생/정지
 audio.playBGM('sirtet');    // Sirtet BGM 재생
+audio.playBGM('snake');     // 뱀게임 BGM 재생
+audio.playBGM('fruitbox');  // 사과게임 BGM 재생
 audio.stopBGM();            // BGM 정지
 
 // 5. 볼륨 조절
@@ -397,12 +402,17 @@ audio.destroy();
 | `clear` | 라인 클리어 | 상승하는 아르페지오 (C-E-G-C) |
 | `gameover` | 게임 종료 | 하강하는 멜로디 (G-F-E-C) |
 | `start` | 게임 시작 | 상승하는 아르페지오 (C-E-G-C) |
+| `eat` | 먹이 먹음 | 밝고 짧은 상승 사인 파형 |
+| `select` | 선택 | 부드러운 트라이앵글 클릭 |
+| `invalid` | 무효 | 낮고 짧은 소스웨이브 buzz |
 
 ### 지원 배경음 (BGM)
 
 | 프리셋 | 설명 |
 |--------|------|
 | `sirtet` | Tetris Theme(Everlydeen) 스타일 8비트 루프 멜로디, BPM 132 |
+| `snake` | 경쾌한 8비트 루프 멜로디, BPM 120 |
+| `fruitbox` | 경쾌한 팝 스타일 8비트 루프, BPM 110 |
 
 ### 게임에 오디오 통합하기
 

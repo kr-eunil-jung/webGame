@@ -8,7 +8,10 @@
  * 사용법:
  *   const audio = new GameAudio();
  *   audio.playBGM('sirtet');
+ *   audio.playBGM('snake');
+ *   audio.playBGM('fruitbox');
  *   audio.playSFX('move');
+ *   audio.playSFX('eat');
  *   audio.destroy();
  */
 (function () {
@@ -63,6 +66,15 @@
           break;
         case 'start':
           this._playStart(now);
+          break;
+        case 'eat':
+          this._playEat(now);
+          break;
+        case 'select':
+          this._playSelect(now);
+          break;
+        case 'invalid':
+          this._playInvalid(now);
           break;
       }
     }
@@ -173,13 +185,55 @@
       });
     }
 
+    /** 먹이 먹음 — 밝고 짧은 팝 사운드 */
+    _playEat(t) {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, t);
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
+      g.gain.setValueAtTime(0.3, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      osc.connect(g).connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.12);
+    }
+
+    /** 선택 — 부드러운 클릭 */
+    _playSelect(t) {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(660, t);
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.04);
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      osc.connect(g).connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.08);
+    }
+
+    /** 무효 — 낮고 짧은 buzz */
+    _playInvalid(t) {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, t);
+      osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+      g.gain.setValueAtTime(0.15, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(g).connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    }
+
     // ========================
     //     배경음 (BGM)
     // ========================
 
     /**
      * BGM을 재생합니다.
-     * @param {'sirtet'} preset - 프리셋 이름
+     * @param {'sirtet'|'snake'|'fruitbox'} preset - 프리셋 이름
      */
     playBGM(preset) {
       if (!this.enabled || !this.ctx || this.bgmPlaying) return;
@@ -189,6 +243,12 @@
       switch (preset) {
         case 'sirtet':
           this._playSirtetBGM();
+          break;
+        case 'snake':
+          this._playSnakeBGM();
+          break;
+        case 'fruitbox':
+          this._playFruitBoxBGM();
           break;
       }
     }
@@ -267,6 +327,132 @@
           const t = i2 / sampleRate;
           const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
           data[i2] += square * 0.06;
+        }
+        bassTime += dur;
+      }
+
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.bgmGain);
+      source.start(now);
+      this.bgmNodes.push(source);
+    }
+
+    /**
+     * Snake BGM — 경쾌한 8비트 루프 멜로디
+     */
+    _playSnakeBGM() {
+      const now = this.ctx.currentTime;
+
+      const melody = [
+        [523.25, 0.5], [659.25, 0.5], [783.99, 0.5], [659.25, 0.5],
+        [523.25, 0.5], [587.33, 0.5], [659.25, 1.0],
+        [783.99, 0.5], [880.00, 0.5], [783.99, 0.5], [659.25, 0.5],
+        [523.25, 0.5], [587.33, 0.5], [659.25, 1.0],
+        [659.25, 0.5], [783.99, 0.5], [880.00, 0.5], [783.99, 0.5],
+        [659.25, 0.5], [523.25, 0.5], [587.33, 0.5], [659.25, 1.0],
+      ];
+
+      const bpm = 120;
+      const beatDur = 60 / bpm;
+      const loopDuration = melody.reduce((sum, [, d]) => sum + d, 0) * beatDur;
+
+      const sampleRate = this.ctx.sampleRate;
+      const buffer = this.ctx.createBuffer(1, sampleRate * loopDuration, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      let timeOffset = 0;
+      for (const [freq, beats] of melody) {
+        const dur = beats * beatDur;
+        const startSample = Math.floor(timeOffset * sampleRate);
+        const endSample = Math.floor((timeOffset + dur) * sampleRate);
+
+        for (let i = startSample; i < endSample && i < data.length; i++) {
+          const t = i / sampleRate;
+          const phase = (t - timeOffset) / dur;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          const envelope = phase < 0.05 ? phase / 0.05 : (phase > 0.9 ? (1 - phase) / 0.1 : 1);
+          data[i] = square * 0.12 * envelope;
+        }
+        timeOffset += dur;
+      }
+
+      const bassNotes = [130.81, 130.81, 146.83, 146.83, 130.81, 130.81, 146.83, 146.83,
+                          130.81, 130.81, 146.83, 146.83, 130.81, 130.81, 146.83, 146.83];
+      let bassTime = 0;
+      for (let i = 0; i < bassNotes.length; i++) {
+        const freq = bassNotes[i];
+        const dur = beatDur;
+        const startSample = Math.floor(bassTime * sampleRate);
+        const endSample = Math.floor((bassTime + dur) * sampleRate);
+
+        for (let i2 = startSample; i2 < endSample && i2 < data.length; i2++) {
+          const t = i2 / sampleRate;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          data[i2] += square * 0.05;
+        }
+        bassTime += dur;
+      }
+
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.bgmGain);
+      source.start(now);
+      this.bgmNodes.push(source);
+    }
+
+    /**
+     * FruitBox BGM — 경쾌한 팝 스타일 8비트 루프
+     */
+    _playFruitBoxBGM() {
+      const now = this.ctx.currentTime;
+
+      const melody = [
+        [659.25, 0.5], [783.99, 0.5], [880.00, 1.0], [783.99, 0.5], [659.25, 0.5],
+        [587.33, 0.5], [659.25, 0.5], [523.25, 1.0],
+        [783.99, 0.5], [880.00, 0.5], [1046.50, 1.0], [880.00, 0.5], [783.99, 0.5],
+        [659.25, 0.5], [587.33, 0.5], [523.25, 1.0],
+      ];
+
+      const bpm = 110;
+      const beatDur = 60 / bpm;
+      const loopDuration = melody.reduce((sum, [, d]) => sum + d, 0) * beatDur;
+
+      const sampleRate = this.ctx.sampleRate;
+      const buffer = this.ctx.createBuffer(1, sampleRate * loopDuration, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      let timeOffset = 0;
+      for (const [freq, beats] of melody) {
+        const dur = beats * beatDur;
+        const startSample = Math.floor(timeOffset * sampleRate);
+        const endSample = Math.floor((timeOffset + dur) * sampleRate);
+
+        for (let i = startSample; i < endSample && i < data.length; i++) {
+          const t = i / sampleRate;
+          const phase = (t - timeOffset) / dur;
+          const triangle = Math.sin(2 * Math.PI * freq * t);
+          const envelope = phase < 0.05 ? phase / 0.05 : (phase > 0.9 ? (1 - phase) / 0.1 : 1);
+          data[i] = triangle * 0.12 * envelope;
+        }
+        timeOffset += dur;
+      }
+
+      const bassNotes = [164.81, 164.81, 196.00, 196.00, 174.61, 174.61, 164.81, 164.81,
+                          196.00, 196.00, 220.00, 220.00, 196.00, 196.00, 174.61, 174.61];
+      let bassTime = 0;
+      for (let i = 0; i < bassNotes.length; i++) {
+        const freq = bassNotes[i];
+        const dur = beatDur;
+        const startSample = Math.floor(bassTime * sampleRate);
+        const endSample = Math.floor((bassTime + dur) * sampleRate);
+
+        for (let i2 = startSample; i2 < endSample && i2 < data.length; i2++) {
+          const t = i2 / sampleRate;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          data[i2] += square * 0.04;
         }
         bassTime += dur;
       }

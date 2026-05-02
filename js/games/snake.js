@@ -47,6 +47,8 @@
       this.animationId = null;
       this._overlay = null;
 
+      this.audio = new GameAudio();
+
       this.container.appendChild(this.canvas);
 
       this.showWaitingScreen();
@@ -103,6 +105,9 @@
       this.keyHandler = (e) => {
         // 대기화면에서 Enter/Space 누르면 게임 시작
         if (!this.gameStarted && (e.key === 'Enter' || e.key === ' ')) {
+          this.audio.init();
+          this.audio.playSFX('start');
+          this.audio.playBGM('snake');
           this.gameStarted = true;
           this.resetGame();
           this.update();
@@ -160,6 +165,7 @@
       this.gameOver = false;
       this.resetGame();
       this.removeOverlay();
+      this.audio.playBGM('snake');
       this.update();
     }
 
@@ -249,6 +255,8 @@
         newHead.y >= ROWS
       ) {
         this.gameOver = true;
+        this.audio.stopBGM();
+        this.audio.playSFX('gameover');
         this.showGameOverUI();
         return;
       }
@@ -256,6 +264,8 @@
       // Self collision
       if (this.snake.some((seg) => seg.x === newHead.x && seg.y === newHead.y)) {
         this.gameOver = true;
+        this.audio.stopBGM();
+        this.audio.playSFX('gameover');
         this.showGameOverUI();
         return;
       }
@@ -266,6 +276,7 @@
       if (newHead.x === this.food.x && newHead.y === this.food.y) {
         this.score += 10;
         this.spawnFood();
+        this.audio.playSFX('eat');
         // Slightly increase speed
         this.speed = Math.max(60, this.speed - 2);
       } else {
@@ -350,6 +361,7 @@
     destroy() {
       if (this.animationId) cancelAnimationFrame(this.animationId);
       if (this.keyHandler) window.removeEventListener('keydown', this.keyHandler);
+      this.audio.destroy();
       this.container.innerHTML = '';
     }
   }
