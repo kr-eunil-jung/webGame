@@ -380,6 +380,7 @@ audio.playSFX('invalid');   // 무효
 audio.playBGM('sirtet');    // Sirtet BGM 재생
 audio.playBGM('snake');     // 뱀게임 BGM 재생
 audio.playBGM('fruitbox');  // 사과게임 BGM 재생
+audio.playBGM('breakout');  // 벽돌깨기 BGM 재생
 audio.stopBGM();            // BGM 정지
 
 // 5. 볼륨 조절
@@ -413,6 +414,7 @@ audio.destroy();
 | `sirtet` | Tetris Theme(Everlydeen) 스타일 8비트 루프 멜로디, BPM 132 |
 | `snake` | 경쾌한 8비트 루프 멜로디, BPM 120 |
 | `fruitbox` | 경쾌한 팝 스타일 8비트 루프, BPM 110 |
+| `breakout` | 역동적인 8비트 루프 멜로디, BPM 128 |
 
 ### 게임에 오디오 통합하기
 

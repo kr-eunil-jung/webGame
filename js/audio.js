@@ -233,7 +233,7 @@
 
     /**
      * BGM을 재생합니다.
-     * @param {'sirtet'|'snake'|'fruitbox'} preset - 프리셋 이름
+     * @param {'sirtet'|'snake'|'fruitbox'|'breakout'} preset - 프리셋 이름
      */
     playBGM(preset) {
       if (!this.enabled || !this.ctx || this.bgmPlaying) return;
@@ -249,6 +249,9 @@
           break;
         case 'fruitbox':
           this._playFruitBoxBGM();
+          break;
+        case 'breakout':
+          this._playBreakoutBGM();
           break;
       }
     }
@@ -380,6 +383,68 @@
 
       const bassNotes = [130.81, 130.81, 146.83, 146.83, 130.81, 130.81, 146.83, 146.83,
                           130.81, 130.81, 146.83, 146.83, 130.81, 130.81, 146.83, 146.83];
+      let bassTime = 0;
+      for (let i = 0; i < bassNotes.length; i++) {
+        const freq = bassNotes[i];
+        const dur = beatDur;
+        const startSample = Math.floor(bassTime * sampleRate);
+        const endSample = Math.floor((bassTime + dur) * sampleRate);
+
+        for (let i2 = startSample; i2 < endSample && i2 < data.length; i2++) {
+          const t = i2 / sampleRate;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          data[i2] += square * 0.05;
+        }
+        bassTime += dur;
+      }
+
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.bgmGain);
+      source.start(now);
+      this.bgmNodes.push(source);
+    }
+
+    /**
+     * Breakout BGM — 역동적인 8비트 루프 멜로디
+     */
+    _playBreakoutBGM() {
+      const now = this.ctx.currentTime;
+
+      const melody = [
+        [523.25, 0.5], [659.25, 0.5], [783.99, 1.0], [659.25, 0.5],
+        [523.25, 0.5], [783.99, 0.5], [880.00, 1.0], [783.99, 0.5],
+        [659.25, 0.5], [783.99, 0.5], [880.00, 0.5], [1046.50, 1.0],
+        [880.00, 0.5], [783.99, 0.5], [659.25, 1.0], [523.25, 1.0],
+      ];
+
+      const bpm = 128;
+      const beatDur = 60 / bpm;
+      const loopDuration = melody.reduce((sum, [, d]) => sum + d, 0) * beatDur;
+
+      const sampleRate = this.ctx.sampleRate;
+      const buffer = this.ctx.createBuffer(1, sampleRate * loopDuration, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      let timeOffset = 0;
+      for (const [freq, beats] of melody) {
+        const dur = beats * beatDur;
+        const startSample = Math.floor(timeOffset * sampleRate);
+        const endSample = Math.floor((timeOffset + dur) * sampleRate);
+
+        for (let i = startSample; i < endSample && i < data.length; i++) {
+          const t = i / sampleRate;
+          const phase = (t - timeOffset) / dur;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          const envelope = phase < 0.05 ? phase / 0.05 : (phase > 0.9 ? (1 - phase) / 0.1 : 1);
+          data[i] = square * 0.12 * envelope;
+        }
+        timeOffset += dur;
+      }
+
+      const bassNotes = [130.81, 130.81, 146.83, 146.83, 174.61, 174.61, 196.00, 196.00,
+                          130.81, 130.81, 146.83, 146.83, 174.61, 174.61, 196.00, 196.00];
       let bassTime = 0;
       for (let i = 0; i < bassNotes.length; i++) {
         const freq = bassNotes[i];
