@@ -10,6 +10,7 @@
  *   audio.playBGM('sirtet');
  *   audio.playBGM('snake');
  *   audio.playBGM('fruitbox');
+ *   audio.playBGM('memory');
  *   audio.playSFX('move');
  *   audio.playSFX('eat');
  *   audio.destroy();
@@ -233,7 +234,7 @@
 
     /**
      * BGM을 재생합니다.
-     * @param {'sirtet'|'snake'|'fruitbox'|'breakout'} preset - 프리셋 이름
+     * @param {'sirtet'|'snake'|'fruitbox'|'breakout'|'memory'} preset - 프리셋 이름
      */
     playBGM(preset) {
       if (!this.enabled || !this.ctx || this.bgmPlaying) return;
@@ -252,6 +253,9 @@
           break;
         case 'breakout':
           this._playBreakoutBGM();
+          break;
+        case 'memory':
+          this._playMemoryBGM();
           break;
       }
     }
@@ -456,6 +460,68 @@
           const t = i2 / sampleRate;
           const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
           data[i2] += square * 0.05;
+        }
+        bassTime += dur;
+      }
+
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.bgmGain);
+      source.start(now);
+      this.bgmNodes.push(source);
+    }
+
+    /**
+     * Memory BGM — 차분한 8비트 루프 멜로디 (메모리카드용)
+     */
+    _playMemoryBGM() {
+      const now = this.ctx.currentTime;
+
+      const melody = [
+        [523.25, 1.0], [659.25, 1.0], [783.99, 1.0], [659.25, 0.5], [523.25, 0.5],
+        [587.33, 1.0], [783.99, 1.0], [880.00, 1.5], [783.99, 0.5],
+        [659.25, 1.0], [587.33, 1.0], [523.25, 1.0], [659.25, 0.5], [523.25, 0.5],
+        [587.33, 1.0], [523.25, 1.0], [440.00, 1.5], [523.25, 0.5],
+      ];
+
+      const bpm = 100;
+      const beatDur = 60 / bpm;
+      const loopDuration = melody.reduce((sum, [, d]) => sum + d, 0) * beatDur;
+
+      const sampleRate = this.ctx.sampleRate;
+      const buffer = this.ctx.createBuffer(1, sampleRate * loopDuration, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      let timeOffset = 0;
+      for (const [freq, beats] of melody) {
+        const dur = beats * beatDur;
+        const startSample = Math.floor(timeOffset * sampleRate);
+        const endSample = Math.floor((timeOffset + dur) * sampleRate);
+
+        for (let i = startSample; i < endSample && i < data.length; i++) {
+          const t = i / sampleRate;
+          const phase = (t - timeOffset) / dur;
+          const triangle = Math.sin(2 * Math.PI * freq * t);
+          const envelope = phase < 0.05 ? phase / 0.05 : (phase > 0.9 ? (1 - phase) / 0.1 : 1);
+          data[i] = triangle * 0.1 * envelope;
+        }
+        timeOffset += dur;
+      }
+
+      const bassNotes = [130.81, 130.81, 146.83, 146.83, 164.81, 164.81, 146.83, 146.83,
+                          130.81, 130.81, 110.00, 110.00, 130.81, 130.81, 146.83, 146.83];
+      let bassTime = 0;
+      for (let i = 0; i < bassNotes.length; i++) {
+        const freq = bassNotes[i];
+        const dur = beatDur;
+        const startSample = Math.floor(bassTime * sampleRate);
+        const endSample = Math.floor((bassTime + dur) * sampleRate);
+
+        for (let i2 = startSample; i2 < endSample && i2 < data.length; i2++) {
+          const t = i2 / sampleRate;
+          const square = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
+          data[i2] += square * 0.04;
         }
         bassTime += dur;
       }

@@ -30,6 +30,7 @@ python -m http.server 8000
 | **뱀게임** | 클래식 뱀 게임 — 먹이를 먹고 자라세요! |
 | **사과게임** | 사과를 드래그하여 합계가 10이 되게 하는 퍼즐 게임! |
 | **벽돌깨기** | 공으로 벽돌을 모두 깨세요! |
+| **메모리카드** | 같은 그림 카드를 찾아 매칭하세요! |
 
 ## 📁 프로젝트 구조
 
@@ -42,11 +43,13 @@ webGame/
 │   ├── app.js              # SPA 진입점 (라우팅, 렌더링)
 │   ├── registry.js         # GameRegistry (게임 등록/관리)
 │   ├── router.js           # Hash 기반 라우터
+│   ├── audio.js            # GameAudio (BGM/SFX 합성)
 │   └── games/
 │       ├── sirtet.js       # Sirtet (역중력 블록 쌓기)
 │       ├── snake.js        # 뱀게임
 │       ├── fruit-box.js    # 사과게임 (퍼즐)
-│       └── breakout.js     # 벽돌깨기 (아케이드)
+│       ├── breakout.js     # 벽돌깨기 (아케이드)
+│       └── memory-card.js  # 메모리카드 (퍼즐)
 ├── docs/
 │   └── developer-guide.md  # 새 게임 추가 가이드
 └── README.md
@@ -94,6 +97,13 @@ webGame/
 |------|------|
 | ← → | 패들 좌우 이동 |
 | 마우스 / 터치 | 패들 이동 |
+| Enter / Space | 게임 시작 |
+
+### 메모리카드
+
+| 입력 | 동작 |
+|------|------|
+| 마우스 클릭 | 카드 뒤집기 |
 | Enter / Space | 게임 시작 |
 
 ## 📜 License
