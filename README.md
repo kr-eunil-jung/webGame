@@ -35,6 +35,7 @@ python -m http.server 8000
 | **Flappy Bird** | 관문을 통과하며 최고 기록을 도전하세요! |
 | **지뢰찾기** | 클래식 지뢰찾기 — 지뢰를 피하고 모든 칸을 밝혀세요! |
 | **스페이스 인베이더** | 우주 침공자들을 격파하세요! (레벨 진행) |
+| **2048** | 타일을 합쳐 2048을 만드세요! (애니메이션 포함) |
 
 ## 📁 프로젝트 구조
 
@@ -57,7 +58,8 @@ webGame/
 │       ├── pong.js         # Pong (아케이드)
 │       ├── flappy-bird.js  # Flappy Bird (아케이드)
 │       ├── minesweeper.js  # 지뢰찾기 (퍼즐)
-│       └── space-invaders.js  # 스페이스 인베이더 (아케이드)
+│       ├── space-invaders.js  # 스페이스 인베이더 (아케이드)
+│       └── 2048.js            # 2048 (퍼즐, 애니메이션)
 ├── docs/
 │   └── developer-guide.md  # 새 게임 추가 가이드
 └── README.md
@@ -143,6 +145,13 @@ webGame/
 |----|------|
 | ← → | 좌우 이동 |
 | Space / ↑ | 발사 |
+| Enter / Space | 게임 시작 |
+
+### 2048
+
+| 키 | 동작 |
+|----|------|
+| ↑ ↓ ← → / W A S D | 타일 이동 |
 | Enter / Space | 게임 시작 |
 
 ## 📜 License
