@@ -31,6 +31,7 @@ python -m http.server 8000
 | **사과게임** | 사과를 드래그하여 합계가 10이 되게 하는 퍼즐 게임! |
 | **벽돌깨기** | 공으로 벽돌을 모두 깨세요! |
 | **메모리카드** | 같은 그림 카드를 찾아 매칭하세요! |
+| **Pong** | 클래식 Pong — AI와 맞서세요! |
 
 ## 📁 프로젝트 구조
 
@@ -49,7 +50,8 @@ webGame/
 │       ├── snake.js        # 뱀게임
 │       ├── fruit-box.js    # 사과게임 (퍼즐)
 │       ├── breakout.js     # 벽돌깨기 (아케이드)
-│       └── memory-card.js  # 메모리카드 (퍼즐)
+│       ├── memory-card.js  # 메모리카드 (퍼즐)
+│       └── pong.js         # Pong (아케이드)
 ├── docs/
 │   └── developer-guide.md  # 새 게임 추가 가이드
 └── README.md
@@ -104,6 +106,13 @@ webGame/
 | 입력 | 동작 |
 |------|------|
 | 마우스 클릭 | 카드 뒤집기 |
+| Enter / Space | 게임 시작 |
+
+### Pong
+
+| 키 | 동작 |
+|----|------|
+| ↑ ↓ / W S | 패들 상하 이동 |
 | Enter / Space | 게임 시작 |
 
 ## 📜 License
