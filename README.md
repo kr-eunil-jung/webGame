@@ -32,6 +32,7 @@ python -m http.server 8000
 | **벽돌깨기** | 공으로 벽돌을 모두 깨세요! |
 | **메모리카드** | 같은 그림 카드를 찾아 매칭하세요! |
 | **Pong** | 클래식 Pong — AI와 맞서세요! |
+| **Flappy Bird** | 관문을 통과하며 최고 기록을 도전하세요! |
 
 ## 📁 프로젝트 구조
 
@@ -51,7 +52,8 @@ webGame/
 │       ├── fruit-box.js    # 사과게임 (퍼즐)
 │       ├── breakout.js     # 벽돌깨기 (아케이드)
 │       ├── memory-card.js  # 메모리카드 (퍼즐)
-│       └── pong.js         # Pong (아케이드)
+│       ├── pong.js         # Pong (아케이드)
+│       └── flappy-bird.js  # Flappy Bird (아케이드)
 ├── docs/
 │   └── developer-guide.md  # 새 게임 추가 가이드
 └── README.md
@@ -113,6 +115,13 @@ webGame/
 | 키 | 동작 |
 |----|------|
 | ↑ ↓ / W S | 패들 상하 이동 |
+| Enter / Space | 게임 시작 |
+
+### Flappy Bird
+
+| 입력 | 동작 |
+|------|------|
+| Space / 클릭 / 터치 | 날기 |
 | Enter / Space | 게임 시작 |
 
 ## 📜 License
