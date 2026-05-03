@@ -15,6 +15,12 @@
    * 홈 화면 렌더링
    */
   function renderHome() {
+    // 이전 게임 cleanup (BGM 정지 등)
+    if (activeGame && typeof activeGame.destroy === 'function') {
+      activeGame.destroy();
+      activeGame = null;
+    }
+
     const games = GameRegistry.getAll();
     const cards = games
       .map(
